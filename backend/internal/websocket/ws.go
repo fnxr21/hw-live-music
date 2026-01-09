@@ -13,8 +13,7 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
-// // Store connected clients
-// var clients = make(map[*websocket.Conn]bool)
+// store connected clients
 var clients = make(map[*Client]bool) // store *Client, not *websocket.Conn
 
 var mu sync.Mutex
