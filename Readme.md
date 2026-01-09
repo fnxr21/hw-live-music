@@ -152,7 +152,7 @@ npm install
 
 # Edit .env.local as needed
 
-# Start development server
+# Start development frontend
 npm run dev
 ```
 
