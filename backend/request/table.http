@@ -1,0 +1,30 @@
+
+### Create a new table
+POST http://localhost:8080/api/v1/table
+Content-Type: application/json
+
+{
+    "table_number": 5,
+    "is_active": true
+}
+
+### List all tables
+GET http://localhost:8080/api/v1/tables
+Accept: application/json
+
+### Get a table by ID
+GET http://localhost:8080/api/v1/table/a0a23150-24d7-452c-b56b-9941a44bac1c
+Accept: application/json
+
+### Update a table
+PUT http://localhost:8080/api/v1/table/a0a23150-24d7-452c-b56b-9941a44bac1c
+Content-Type: application/json
+
+{
+    "table_number": 10,
+    "is_active": true
+}
+
+### Delete a table
+DELETE http://localhost:8080/api/v1/table/a0a23150-24d7-452c-b56b-9941a44bac1c
+Accept: application/json

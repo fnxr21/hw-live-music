@@ -1,0 +1,9 @@
+
+
+# use my bearer token as example
+
+### Genius – Search songs
+GET https://api.genius.com/search?q=kendrick%20lamar
+Authorization: Bearer 7AMDWYJDuo9Cyl28OaWytmdQaycj7JVO-1xbkZx8nhwL9_XGyRakR42OhBkE85fm
+Accept: application/json
+

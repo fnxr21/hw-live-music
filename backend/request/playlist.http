@@ -1,0 +1,35 @@
+
+### Create a new playlist entry
+POST http://localhost:8080/api/v1/playlist
+Content-Type: application/json
+
+{
+    "song_request_id": "0bebc3ba-cf46-480d-8bc1-b22c1a74d7f9",
+    "is_current": false,
+    "table_id": "a0a23150-24d7-452c-b56b-9941a44bac1c",
+    "is_active": true
+}
+
+### List all playlist entries
+GET http://localhost:8080/api/v1/playlists
+Accept: application/json
+
+### Get a playlist entry by ID
+GET http://localhost:8080/api/v1/playlist/{{live_playlist_id}}
+Accept: application/json
+
+### Update a playlist entry
+PUT http://localhost:8080/api/v1/playlist/{{live_playlist_id}}
+Content-Type: application/json
+
+{
+    "song_request_id": "{{song_request_id}}",
+    "order_number": 2,
+    "is_current": true,
+    "table_id": "{{table_id}}",
+    "is_active": true
+}
+
+### Delete a playlist entry
+DELETE http://localhost:8080/api/v1/playlist/{{live_playlist_id}}
+Accept: application/json

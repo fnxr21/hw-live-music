@@ -1,0 +1,48 @@
+
+### Create a new user
+POST http://localhost:8080/api/v1/user/register
+Content-Type: application/json
+
+{
+    "name": "admin",
+    "password": "securepassword",
+    "token": null,
+    "role": "admin",
+    "is_active": true
+}
+
+### List all users
+GET http://localhost:8080/api/v1/users
+Accept: application/json
+
+### Get a user by ID
+GET http://localhost:8080/api/v1/user/493996dc-93e6-4635-b369-e0fb406304ad
+Accept: application/json
+
+### Update a user
+PUT http://localhost:8080/api/v1/user/493996dc-93e6-4635-b369-e0fb406304ad
+Content-Type: application/json
+
+{
+    "name": "admin_updated",
+    "password": "newpassword",
+    "token": "sometoken",
+    "role": "admin",
+    "is_active": true
+}
+
+### Delete a user
+DELETE http://localhost:8080/api/v1/user/493996dc-93e6-4635-b369-e0fb406304ad
+Accept: application/json
+
+
+
+
+
+
+
+
+
+############################################################
+# LIVE PLAYLIST API
+############################################################
