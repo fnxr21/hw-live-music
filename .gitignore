@@ -1,2 +1,5 @@
 .env
 **/.env
+
+# Postgres runtime data (never commit)
+database/postgres/data/
