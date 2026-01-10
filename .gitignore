@@ -48,5 +48,5 @@ pgdata/
 postgres-data/
 
 # Environment files
-# .env
-# .env.*
+.env
+.env.*
