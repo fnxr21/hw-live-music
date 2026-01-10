@@ -11,3 +11,6 @@ frontend/build/
 # Docker
 docker/.env
 docker/volumes/
+
+
+**/.env
