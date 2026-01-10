@@ -145,7 +145,7 @@ docker-compose -f ./database/docker-compose.yml up -d
 ```
 
 ```bash
-cd my-app
+cd frontend
 
 # Install dependencies
 npm install
