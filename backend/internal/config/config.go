@@ -35,7 +35,7 @@ func LoadConfig() *Config {
 		// 	user, pass, host, port, name,
 		// )
 		dbURL = fmt.Sprintf(
-			"postgres://%s:%s@%s:%s/%s?sslmode=disable&search_path=live_music",
+			"postgres://%s:%s@%s:%s/%s?sslmode=disable",
 			user, pass, host, port, name,
 		)
 	}

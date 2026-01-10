@@ -14,10 +14,12 @@ import (
 func main() {
 	cfg := config.LoadConfig()
 	postgres.Connect(cfg.DbURL)
-	// Start the realtime listener
-		// Create repository instance
-	repo := repositories.Repository(postgres.DB) // your repo struct that implements SongRequest
 
+	// create repository instance
+	// your repo struct that implements SongRequest
+	repo := repositories.Repository(postgres.DB)
+	
+	// start the realtime listener
 	postgres.StartRealtimeListener(cfg.DbURL, repo, repo)
 
 	e := echo.New()
@@ -27,6 +29,7 @@ func main() {
 		AllowMethods: []string{echo.GET, echo.POST, echo.PATCH, echo.DELETE},
 		AllowHeaders: []string{"X-Requested-With", "Content-Type", "Authorization"},
 	}))
+	
 	router.RouterInit(e.Group("/api/v1"))
 
 	log.Printf("Server running at :%s\n", cfg.Port)

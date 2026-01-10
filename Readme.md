@@ -6,19 +6,7 @@ Customers request songs straight from their tables. Bands curate the flow. Every
 
 ---
 
-## 📋 Problem Statement
 
-Live music venues thrive on energy and momentum—but song requests are often chaotic, manual, or disruptive.
-
-This system creates a clean, real-time bridge between:
-
-* **Customers**, who want to request songs effortlessly
-* **Bands/Admins**, who need full control over what gets played and when
-* **The Venue**, which benefits from smoother operations and happier guests
-
-No shouting. No scraps of paper. Just music, moving at the speed of the room.
-
----
 
 ## ✨ Core Features
 

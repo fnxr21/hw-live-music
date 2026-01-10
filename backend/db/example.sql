@@ -102,7 +102,7 @@ WHERE live_playlist_id = '63ee0720-6929-43c9-ac22-dd2c0fef3c21';
 
 
 
-	SELECT tsr.*,rss.status_name ,rt.table_number 
+SELECT tsr.*,rss.status_name ,rt.table_number 
 		FROM live_music.trx_song_requests tsr 
 		left join live_music.ref_song_status rss on rss.status_id  =tsr.status 
 		left join live_music.ref_tables rt on rt.table_id  =tsr.table_id 

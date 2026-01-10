@@ -1,14 +1,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-CREATE SCHEMA IF NOT EXISTS live_music;
+CREATE DATABASE live_music;
 
-
-
--- live_music.ref_song_status definition
-
--- Drop table
-
--- DROP TABLE live_music.ref_song_status;
 
 CREATE TABLE IF NOT EXISTS live_music.ref_song_status (
 	status_id uuid DEFAULT uuid_generate_v4() NOT NULL,
@@ -44,14 +37,6 @@ CREATE TABLE IF NOT EXISTS live_music.ref_songs (
 
 
 
-
-
--- live_music.ref_tables definition
-
--- Drop table
-
--- DROP TABLE live_music.ref_tables;
-
 CREATE TABLE IF NOT EXISTS live_music.ref_tables (
 	table_id uuid DEFAULT uuid_generate_v4() NOT NULL,
 	table_number int4 NOT NULL,
@@ -66,12 +51,6 @@ CREATE TABLE IF NOT EXISTS live_music.ref_tables (
 
 
 
-
--- live_music.ref_users definition
-
--- Drop table
-
--- DROP TABLE live_music.ref_users;
 
 CREATE TABLE IF NOT EXISTS live_music.ref_users (
 	user_id uuid DEFAULT uuid_generate_v4() NOT NULL,
@@ -90,13 +69,6 @@ CREATE TABLE IF NOT EXISTS live_music.ref_users (
 
 
 
-
--- live_music.trx_live_playlists definition
-
--- Drop table
-
--- DROP TABLE live_music.trx_live_playlists;
-
 CREATE TABLE IF NOT EXISTS live_music.trx_live_playlists (
 	live_playlist_id uuid DEFAULT uuid_generate_v4() NOT NULL,
 	song_request_id uuid NOT NULL,
@@ -111,11 +83,6 @@ CREATE TABLE IF NOT EXISTS live_music.trx_live_playlists (
 	CONSTRAINT trx_live_playlists_pkey PRIMARY KEY (live_playlist_id)
 );
 
-    -- live_music.trx_song_requests definition
-
--- Drop table
-
--- DROP TABLE live_music.trx_song_requests;
 
 CREATE TABLE IF NOT EXISTS live_music.trx_song_requests (
 	song_request_id uuid DEFAULT uuid_generate_v4() NOT NULL,
@@ -132,6 +99,3 @@ CREATE TABLE IF NOT EXISTS live_music.trx_song_requests (
 	updated_by uuid NULL,
 	CONSTRAINT trx_song_requests_pkey PRIMARY KEY (song_request_id)
 );
-
-
-    

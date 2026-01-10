@@ -1,25 +1,27 @@
-services:
-  postgres:
-    image: postgres:15
-    container_name: ${APP_NAME}_pgsql
-    restart: unless-stopped
-    environment:
-      POSTGRES_PASSWORD: ${PGSQL_POSTGRES_PASSWORD}
-      #POSTGRES_USER: ${PGSQL_POSTGRES_USER}
-    ports:
-      - ${PGSQL_PORT}:5432
+  services:
+    postgres:
+      image: postgres:15
+      container_name: ${APP_NAME}_pgsql
+      restart: unless-stopped
+      environment:
+        POSTGRES_PASSWORD: ${PGSQL_POSTGRES_PASSWORD}
+        POSTGRES_USER: ${PGSQL_POSTGRES_USER}
+        POSTGRES_DB: ${PGSQL_POSTGRES_DB}
+      ports:
+        - ${PGSQL_PORT}:5432
 
-    volumes:
-      - ${PGSQL_DIR}:/var/lib/postgresql/data
+      volumes:
+        - ${PGSQL_DIR}:/var/lib/postgresql/data
+        - ./docker/postgres/init:/docker-entrypoint-initdb.d
 
-    # networks:
-    #   - app-network
+      # networks:
+      #   - app-network
 
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U postgres"]
+        interval: 5s
+        timeout: 5s
+        retries: 5
 
   # backend:
   #   build:

@@ -1,0 +1,7 @@
+CREATE DATABASE live_music;
+CREATE DATABASE analytics_db;
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+GRANT ALL PRIVILEGES ON DATABASE live_music_db TO postgres;
+GRANT ALL PRIVILEGES ON DATABASE analytics_db TO postgres;
