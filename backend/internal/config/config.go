@@ -30,9 +30,12 @@ func LoadConfig() *Config {
 			log.Fatal("Database environment variables are missing")
 		}
 
-		
+		// dbURL = fmt.Sprintf(
+		// 	"postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		// 	user, pass, host, port, name,
+		// )
 		dbURL = fmt.Sprintf(
-			"postgres://%s:%s@%s:%s/%s?sslmode=disable",
+			"postgres://%s:%s@%s:%s/%s?sslmode=disable&search_path=live_music",
 			user, pass, host, port, name,
 		)
 	}
