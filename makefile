@@ -5,4 +5,5 @@ docker-db-down:
 
 run-next:
 	cd ./frontend && npm run dev
-	
+run-go:
+	cd ./backend && go run main.go

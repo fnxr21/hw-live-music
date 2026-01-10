@@ -1,16 +1,2 @@
-# Backend
-backend/node_modules/
-backend/.env
-backend/dist/
-
-# Frontend
-frontend/node_modules/
-frontend/.env
-frontend/build/
-
-# Docker
-docker/.env
-docker/volumes/
-
-
+.env
 **/.env
