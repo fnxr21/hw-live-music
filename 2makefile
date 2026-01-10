@@ -1,0 +1,31 @@
+APP_NAME=app
+DB_URL=postgres://postgres:postgres@localhost:5432/test_db?sslmode=disable
+MIGRATIONS=./db/migrations
+DOCKER_COMPOSE=docker/postgres/docker-compose.yml
+
+.PHONY: run db-up db-down migrate-up migrate-down reset
+
+## Start postgres
+db-up:
+	docker compose -f $(DOCKER_COMPOSE) up -d
+
+## Stop postgres
+db-down:
+	docker compose -f $(DOCKER_COMPOSE) down -v
+
+## Run migrations
+migrate-up:
+	migrate -path $(MIGRATIONS) -database "$(DB_URL)" up
+
+## Rollback last migration
+migrate-down:
+	migrate -path $(MIGRATIONS) -database "$(DB_URL)" down 1
+
+## Run app
+run:
+	DB_URL=$(DB_URL) go run cmd/web/main.go
+
+## Full reset (dangerous but useful)
+reset:
+	docker compose -f $(DOCKER_COMPOSE) down -v
+	rm -rf docker/postgres/data
