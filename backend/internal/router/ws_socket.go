@@ -18,7 +18,7 @@ func WebSocketRoute(e *echo.Group) {
 	// public / everyone
 	e.GET("/ws/playlists", func(c echo.Context) error {
 		ws.HandleWS(c.Response(), c.Request(), "", func(client *ws.Client) {
-			playlists, err := repo.ListLivePlaylists()
+			playlists, err := repo.RealTimeListLivePlaylists()
 			if err != nil {
 				return
 			}
@@ -27,6 +27,7 @@ func WebSocketRoute(e *echo.Group) {
 		}) // empty tableID = public
 		return nil
 	})
+	
 
 	// private / table-specific
 	e.GET("/ws/table/:id", func(c echo.Context) error {
@@ -55,7 +56,7 @@ func WebSocketRoute(e *echo.Group) {
 		tableID := c.Param("id")
 		ws.HandleWS(c.Response(), c.Request(), tableID, func(client *ws.Client) {
 
-			playlists, err := repo.ListLivePlaylists()
+			playlists, err := repo.RealTimeListLivePlaylists()
 			if err != nil {
 				return
 			}

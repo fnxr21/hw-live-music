@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { fetchSongRequests, updateSongRequestStatus } from "@/services/songRequests";
+// import { listSongRequests, updateSongRequest } from "@/config/api/requests";
+import { ApiListSongsRequest, ApiUpdateSongRequest } from "@/config/api";
 
 export const useSongRequests = (perPage = 5) => {
   const [requests, setRequests] = useState([]);
@@ -7,26 +8,26 @@ export const useSongRequests = (perPage = 5) => {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  const loadRequests = async () => {
+  const fetchRequests = async () => {
     setLoading(true);
     try {
-      const data = await fetchSongRequests({ page, limit: perPage });
+      const { data } = await ApiListSongsRequest({ page, limit: perPage });
       setRequests(data.data || []);
       setTotal(data.total || 0);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to fetch requests:", err);
     } finally {
       setLoading(false);
     }
   };
 
   const updateStatus = async (req, statusUuid) => {
-    await updateSongRequestStatus(req.song_request_id, statusUuid);
-    loadRequests();
+    await ApiUpdateSongRequest({ id: req.song_request_id, status: statusUuid });
+    fetchRequests();
   };
 
   useEffect(() => {
-    loadRequests();
+    fetchRequests();
   }, [page]);
 
   return { requests, page, setPage, total, loading, updateStatus };

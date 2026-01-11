@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/fnxr21/hw-live-music/backend/internal/models"
 	"github.com/fnxr21/hw-live-music/backend/internal/repositories"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -35,11 +36,33 @@ func (h *handlerLivePlaylist) CreateLivePlaylist(c echo.Context) error {
 
 // ListLivePlaylists returns all active playlist entries
 func (h *handlerLivePlaylist) ListLivePlaylists(c echo.Context) error {
-	playlists, err := h.PlaylistRepo.ListLivePlaylists()
+		page := 1
+	limit := 5
+
+	if pages := c.QueryParam("page"); pages != "" {
+		if parsed, err := strconv.Atoi(pages); err == nil && parsed > 0 {
+			page = parsed
+		}
+	}
+
+	if limits := c.QueryParam("limit"); limits != "" {
+		if parsed, err := strconv.Atoi(limits); err == nil && parsed > 0 {
+			limit = parsed
+		}
+	}
+
+	offset := (page - 1) * limit
+	playlists,total, err := h.PlaylistRepo.ListLivePlaylists(limit, offset)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	return c.JSON(http.StatusOK, playlists)
+	// return c.JSON(http.StatusOK, playlists)
+		return c.JSON(http.StatusOK,  map[string]interface{}{
+		"data":  playlists,
+		"page":  page,
+		"limit": limit,
+		"total": total,
+	})
 }
 
 // GetLivePlaylistByID returns a playlist entry by UUID

@@ -51,7 +51,7 @@ func StartRealtimeListener(dsn string, repoPlaylist repositories.LivePlaylist, r
 
 				switch notify.Table {
 				case "trx_live_playlists":
-					playlists, err := repoPlaylist.ListLivePlaylists()
+					playlists, err := repoPlaylist.RealTimeListLivePlaylists()
 
 					if err != nil {
 						log.Println("Failed to fetch playlists:", err)
