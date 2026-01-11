@@ -17,12 +17,15 @@ export default function RequestPanel({ requests, approve, reject, compact, page,
         requests.map((r) => (
           <div
             key={r.song_request_id}
-            className="bg-neutral-900 rounded px-3 py-2 mb-2 text-sm"
+            className="bg-neutral-900  flex justify-between rounded px-3 py-2 mb-2 text-sm"
           >
+            <span>
+
             <p>{r.title}</p>
             {!compact && r.table_number && (
               <p className="text-xs text-neutral-400">{r.table_number}</p>
             )}
+            </span>
 
             <div className="flex gap-2 mt-2">
               <button

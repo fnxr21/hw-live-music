@@ -11,32 +11,16 @@ import { ApiListSongsRequest, ApiUpdateSongRequest } from "@/config/api";
 import RightRequestPanel from "./components/RightRequestPanel";
 
 export default function Dashboard() {
-  const [menu, setMenu] = useState("album");
+  const [menu, setMenu] = useState("playlist");
 
   const [page, setPage] = useState(1);
   const [perPage] = useState(5);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  const [albums, setAlbums] = useState([
-    { id: "1", title: "Midnight Drive" },
-    { id: "2", title: "Neon City Lights" },
-    { id: "3", title: "Lo-Fi Dreams" },
-    { id: "4", title: "Jazz After Dark" },
-    { id: "5", title: "Rainy Tokyo" },
-    { id: "6", title: "Analog Love" },
-    { id: "7", title: "City Pop Sunset" },
-    { id: "8", title: "Late Night Coding" },
-    { id: "9", title: "Smooth Espresso" },
-    { id: "10", title: "Vinyl Memories" },
-  ]);
+
 
   const [requests, setRequests] = useState([]);
-  const [playlist, setPlaylist] = useState([
-    { id: "p1", songId: "1", title: "Midnight Drive", source: "admin" },
-    { id: "p2", songId: "4", title: "Jazz After Dark", source: "admin" },
-    { id: "p3", songId: "2", title: "Neon City Lights", source: "request" },
-  ]);
 
   /* Fetch paginated song requests from backend */
   const fetchSongRequest = async () => {
@@ -58,12 +42,6 @@ export default function Dashboard() {
 
   /* ACTIONS */
 
-  const addAlbumSongToPlaylist = (song) => {
-    setPlaylist((prev) => [
-      ...prev,
-      { id: Date.now().toString(), songId: song.id, title: song.title, source: "admin" },
-    ]);
-  };
 
   /* Approve or Reject a request */
   const updateStatus = async (req, statusUuid) => {
@@ -90,36 +68,51 @@ export default function Dashboard() {
   const rejectRequest = (req) =>
     updateStatus(req, "46702771-272a-4bc3-814f-d1b9373ae4fa");
 
+  // above is api reqsong
+  // below is api for playlist
+
+  const [playlist, setPlaylist] = useState([
+    { id: "p1", songId: "1", title: "Midnight Drive", source: "admin" },
+    { id: "p2", songId: "4", title: "Jazz After Dark", source: "admin" },
+    { id: "p3", songId: "2", title: "Neon City Lights", source: "request" },
+  ]);
+
+
+
   return (
     <>
       <Sidebar menu={menu} setMenu={setMenu} />
 
       <main className="flex-1 p-6">
         {menu === "album" && (
-          <AlbumPanel albums={albums} setAlbums={setAlbums} addToPlaylist={addAlbumSongToPlaylist} />
+          <AlbumPanel />
         )}
 
         {menu === "playlist" && <PlaylistPanel playlist={playlist} setPlaylist={setPlaylist} />}
 
         {menu === "request" && (
           <RequestPanel
-  requests={requests}
-  approve={approveRequest}
-  reject={rejectRequest}
-  page={page}
-  total={total}
-  onPageChange={setPage}
-  loading={loading}
-/>
+            requests={requests}
+            approve={approveRequest}
+            reject={rejectRequest}
+            page={page}
+            total={total}
+            onPageChange={setPage}
+            loading={loading}
+          />
+
           // <RequestPanel requests={requests} approve={approveRequest} reject={rejectRequest} />
         )}
+        
       </main>
 
       <aside className="w-80 border-l border-neutral-800 p-4">
+
         {menu === "playlist" && (
 
           <RightRequestPanel requests={requests} approve={approveRequest} reject={rejectRequest} compact />
         )}
+        {menu === "album" && <LivePlaylistView playlist={playlist} />}
 
         {menu === "request" && <LivePlaylistView playlist={playlist} />}
       </aside>

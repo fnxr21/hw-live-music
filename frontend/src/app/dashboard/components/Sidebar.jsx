@@ -1,8 +1,8 @@
 export default function Sidebar({ menu, setMenu }) {
   const items = [
     { key: "album", label: "Album" },
-    { key: "playlist", label: "Live Playlist" },
     { key: "request", label: "Song Request" },
+    { key: "playlist", label: "Live Playlist" },
   ];
 
   return (

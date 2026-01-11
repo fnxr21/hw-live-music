@@ -8,7 +8,7 @@ export const ApiCreateSong = (form) => API.post("/song", form);
 export const ApiListSongs = ({ page = 1, limit = 5 }) =>
   API.get("/songs", { params: { page, limit } });
 export const ApiGetSong = (id) => API.get(`/song/${id}`);
-export const ApiUpdateSong = (form) => API.put(`/song/${form.id}`, form);
+export const ApiUpdateSong = (form) => API.put(`/song/${form.song_id}`, form);
 export const ApiDeleteSong = (id) => API.delete(`/song/${id}`);
 
 // admin 

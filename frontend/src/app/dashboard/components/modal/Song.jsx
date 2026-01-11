@@ -1,11 +1,22 @@
-"use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function SongModal({ isOpen, onClose, onSubmit, initialData }) {
-  const [title, setTitle] = useState(initialData?.title || "");
-  const [artist, setArtist] = useState(initialData?.artist || "");
-  const [duration, setDuration] = useState(initialData?.duration || "");
+  const [title, setTitle] = useState("");
+  const [artist, setArtist] = useState("");
+  const [duration, setDuration] = useState("");
+
+  // Sync state with initialData whenever it changes
+  useEffect(() => {
+    if (initialData) {
+      setTitle(initialData.title || "");
+      setArtist(initialData.artist || "");
+      setDuration(initialData.duration ? initialData.duration.toString() : "");
+    } else {
+      setTitle("");
+      setArtist("");
+      setDuration("");
+    }
+  }, [initialData]);
 
   if (!isOpen) return null;
 
@@ -21,7 +32,7 @@ export default function SongModal({ isOpen, onClose, onSubmit, initialData }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-neutral-900 p-6 rounded-lg w-[400px]">
+      <div className="bg-neutral-900 p-6 rounded-lg w-100">
         <h2 className="text-lg font-semibold mb-4">
           {initialData ? "Update Song" : "Add New Song"}
         </h2>
