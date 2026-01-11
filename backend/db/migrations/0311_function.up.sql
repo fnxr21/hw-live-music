@@ -100,72 +100,6 @@ FOR EACH ROW
 EXECUTE FUNCTION live_music.trg_insert_live_playlist();
 
 
-CREATE OR REPLACE FUNCTION live_music.trg_live_playlist_update()
-RETURNS trigger
-LANGUAGE plpgsql
-AS $function$
-DECLARE
-    tbl_id uuid;
-    rn int := 1;
-    rec RECORD;
-BEGIN
-    tbl_id := NEW.table_id;
-
-    ----------------------------------
-    -- Case 1: Playlist item marked inactive
-    ----------------------------------
-    IF OLD.is_active = TRUE AND NEW.is_active = FALSE THEN
-
-        -- Mark corresponding song_request as inactive
-        UPDATE live_music.trx_song_requests
-        SET is_active = FALSE,
-            updated_at = NOW()
-        WHERE song_request_id = NEW.song_request_id;
-
-        -- Reorder remaining active playlist items
-        FOR rec IN
-            SELECT live_playlist_id
-            FROM live_music.trx_live_playlists
-            WHERE table_id = tbl_id AND is_active = TRUE
-            ORDER BY order_number
-        LOOP
-            UPDATE live_music.trx_live_playlists
-            SET order_number = rn,
-                is_current = (rn = 1)
-            WHERE live_playlist_id = rec.live_playlist_id;
-
-            rn := rn + 1;
-        END LOOP;
-
-        -- Set inactive item order_number to NULL
-        UPDATE live_music.trx_live_playlists
-        SET order_number = NULL,
-            is_current = FALSE
-        WHERE live_playlist_id = NEW.live_playlist_id;
-    END IF;
-
-    ----------------------------------
-    -- Case 2: Playlist item moved to order_number = 1
-    ----------------------------------
-    IF NEW.order_number = 1 
-        AND OLD.order_number IS DISTINCT FROM NEW.order_number THEN
-        -- No need to update status anymore; order_number = 1 implies played
-        UPDATE live_music.trx_song_requests
-        SET updated_at = NOW()
-        WHERE song_request_id = NEW.song_request_id;
-    END IF;
-
-    RETURN NEW;
-END;
-$function$;
-
--- Trigger for live playlist updates
-DROP TRIGGER IF EXISTS trg_live_playlist_update ON live_music.trx_live_playlists;
-
-CREATE TRIGGER trg_live_playlist_update
-AFTER UPDATE ON live_music.trx_live_playlists
-FOR EACH ROW
-EXECUTE FUNCTION live_music.trg_live_playlist_update();
 
 
 
@@ -228,3 +162,120 @@ AFTER INSERT ON live_music.trx_song_requests
 FOR EACH ROW
 EXECUTE FUNCTION live_music.trg_insert_live_playlist_admin();
 
+
+
+
+
+--
+-- DROP FUNCTION live_music.trg_live_playlist_after_update();
+
+CREATE OR REPLACE FUNCTION live_music.trg_live_playlist_after_update()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+    ----------------------------------
+    -- Case 1: Playlist item marked inactive
+    ----------------------------------
+    IF OLD.is_active = TRUE AND NEW.is_active = FALSE THEN
+        
+        -- Mark corresponding song_request as inactive
+        UPDATE live_music.trx_song_requests
+        SET is_active = FALSE,
+            updated_at = NOW()
+        WHERE song_request_id = NEW.song_request_id;
+
+        -- Reorder remaining active playlist items
+        WITH ranked AS (
+            SELECT 
+                live_playlist_id,
+                ROW_NUMBER() OVER (ORDER BY order_number) as new_order
+            FROM live_music.trx_live_playlists
+            WHERE is_active = TRUE
+              AND live_playlist_id != NEW.live_playlist_id
+        )
+        UPDATE live_music.trx_live_playlists p
+        SET order_number = r.new_order,
+            is_current = (r.new_order = 1),
+            updated_at = NOW()
+        FROM ranked r
+        WHERE p.live_playlist_id = r.live_playlist_id;
+        
+    END IF;
+
+    ----------------------------------
+    -- Case 2: Playlist item moved to order_number = 1
+    ----------------------------------
+    IF NEW.order_number = 1 
+        AND NEW.is_active = TRUE
+        AND COALESCE(OLD.order_number, 0) != 1 THEN
+        
+        -- Set is_current = FALSE for all other items
+        UPDATE live_music.trx_live_playlists
+        SET is_current = FALSE,
+            updated_at = NOW()
+        WHERE is_active = TRUE
+          AND live_playlist_id != NEW.live_playlist_id
+          AND is_current = TRUE;
+        
+        -- Update song request timestamp
+        UPDATE live_music.trx_song_requests
+        SET updated_at = NOW()
+        WHERE song_request_id = NEW.song_request_id;
+    END IF;
+
+    ----------------------------------
+    -- Case 3: Drag and Drop Reordering
+    ----------------------------------
+    IF NEW.is_active = TRUE 
+        AND OLD.is_active = TRUE
+        AND OLD.order_number IS DISTINCT FROM NEW.order_number 
+        AND NEW.order_number IS NOT NULL THEN
+        
+        WITH shifted AS (
+            SELECT 
+                live_playlist_id,
+                order_number as old_order,
+                CASE
+                    WHEN OLD.order_number < NEW.order_number THEN
+                        CASE 
+                            WHEN order_number > OLD.order_number 
+                                AND order_number <= NEW.order_number 
+                            THEN order_number - 1
+                            ELSE order_number
+                        END
+                    WHEN OLD.order_number > NEW.order_number THEN
+                        CASE 
+                            WHEN order_number >= NEW.order_number 
+                                AND order_number < OLD.order_number 
+                            THEN order_number + 1
+                            ELSE order_number
+                        END
+                    ELSE order_number
+                END as new_order
+            FROM live_music.trx_live_playlists
+            WHERE is_active = TRUE
+              AND live_playlist_id != NEW.live_playlist_id
+        )
+        UPDATE live_music.trx_live_playlists p
+        SET order_number = s.new_order,
+            is_current = (s.new_order = 1),
+            updated_at = NOW()
+        FROM shifted s
+        WHERE p.live_playlist_id = s.live_playlist_id
+          AND p.order_number != s.new_order;
+          
+    END IF;
+
+    RETURN NEW;
+END;
+$function$
+;
+
+-- Recreate the trigger
+DROP TRIGGER IF EXISTS trg_live_playlist_after_update ON live_music.trx_live_playlists;
+
+CREATE TRIGGER trg_live_playlist_after_update
+AFTER UPDATE ON live_music.trx_live_playlists
+FOR EACH ROW
+EXECUTE FUNCTION live_music.trg_live_playlist_after_update();
