@@ -4,12 +4,13 @@ import { API } from "./axios";
 // export const APIPosname = (form) => API.patch("reauth", form);
 
 // admin
-export const APIGetSong = () => API.get("/song");
-export const ApiDeletesong = () => API.delete("/song");
-export const APICreateSong = () => API.get("/song");
-export const ApiUpdateesong = () => API.delete("/song");
-export const ApiListSongs = ({ page = 1, limit = 5, tableId = 0 }) =>
-  API.get("/songs", { params: { page, limit, tableId } });
+export const ApiCreateSong = (form) => API.post("/song", form);
+export const ApiListSongs = ({ page = 1, limit = 5 }) =>
+  API.get("/songs", { params: { page, limit } });
+export const ApiGetSong = (id) => API.get(`/song/${id}`);
+export const ApiUpdateSong = (form) => API.put(`/song/${form.id}`, form);
+export const ApiDeleteSong = (id) => API.delete(`/song/${id}`);
+
 
 
 export const APIConfigLocation = (form) =>

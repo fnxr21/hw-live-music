@@ -2,25 +2,30 @@
 
 import { useState, useEffect } from "react";
 import Pagination from "./Pagination";
-import { ApiListSongs, ApiCreateSong, ApiDeleteSong } from "@/config/api";
+import SongModal from "./modal/Song";
+
+import { ApiListSongs, ApiUpdateSong, ApiDeleteSong, ApiCreateSong } from "@/config/api";
 
 export default function AlbumPanel({ addToPlaylist }) {
-  const [albums, setAlbums] = useState([]);
+  const [songs, setSongs] = useState([]);
   const [page, setPage] = useState(1);
   const [perPage] = useState(5);
   const [total, setTotal] = useState(0);
-  const [newSong, setNewSong] = useState("");
   const [loading, setLoading] = useState(false);
+  
+const [modalOpen, setModalOpen] = useState(false);
+  const [modalData, setModalData] = useState(null); // null = add, object = update
 
-  // Fetch songs from backend
+  // const [newSong, setNewSong] = useState("");
+
   const fetchSongs = async () => {
     setLoading(true);
     try {
-      const response = await ApiListSongs({ page, limit: perPage,tableId:1 });
-      setAlbums(response.data.data || []);
+      const response = await ApiListSongs({ page, limit: perPage });
+      setSongs(response.data.data || []);
       setTotal(response.data.total || 0);
-    } catch (error) {
-      console.error("Failed to fetch songs:", error);
+    } catch (err) {
+      console.error("Failed to fetch songs:", err);
     } finally {
       setLoading(false);
     }
@@ -30,27 +35,34 @@ export default function AlbumPanel({ addToPlaylist }) {
     fetchSongs();
   }, [page]);
 
-  // Add new song via backend
-  // const addSong = async () => {
-  //   if (!newSong.trim()) return;
-  //   try {
-  //     await ApiCreateSong({ title: newSong });
-  //     setNewSong("");
-  //     fetchSongs(); // refresh list
-  //   } catch (error) {
-  //     console.error("Failed to create song:", error);
-  //   }
-  // };
+  const handleAddOrUpdate = async (form) => {
+    setLoading(true);
+    try {
+      if (form.song_id) {
+        await ApiUpdateSong(form);
+      } else {
+        await ApiCreateSong(form);
+      }
+      fetchSongs();
+    } catch (err) {
+      console.error("Failed to save song:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Delete song via backend
-  // const deleteSong = async (id) => {
-  //   try {
-  //     await ApiDeleteSong(id);
-  //     fetchSongs(); // refresh list
-  //   } catch (error) {
-  //     console.error("Failed to delete song:", error);
-  //   }
-  // };
+  const handleDelete = async (id) => {
+    setLoading(true);
+    try {
+      await ApiDeleteSong(id);
+      fetchSongs();
+    } catch (err) {
+      console.error("Failed to delete song:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <>
@@ -58,45 +70,62 @@ export default function AlbumPanel({ addToPlaylist }) {
 
       {/* ADD SONG */}
       <div className="flex gap-2 mb-4">
-        <input
+        <button
+          onClick={() => {
+            setModalData(null);
+            setModalOpen(true);
+          }}
+          className="bg-green-500 text-black px-4 rounded text-sm"
+          disabled={loading}
+        >
+          Add Song
+        </button>
+        {/* <input
           value={newSong}
-          onChange={(e) => setNewSong(e.target.value)}
+          // onChange={(e) => setNewSong(e.target.value)}
           placeholder="New song title"
           className="flex-1 rounded bg-neutral-800 px-3 py-2 text-sm"
         />
         <button
-          // onClick={addSong}
+          onClick={()=>addSong()}
           className="bg-green-500 text-black px-4 rounded text-sm"
           disabled={loading}
         >
           Add
-        </button>
+        </button> */}
       </div>
-
-      {/* SONG LIST */}
       <div className="space-y-2">
         {loading ? (
           <p>Loading...</p>
-        ) : albums.length === 0 ? (
+        ) : songs.length === 0 ? (
           <p>No songs found.</p>
         ) : (
-          albums.map((song,index) => (
+          songs.map((song) => (
             <div
-              key={index}
+              key={song.song_id}
               className="flex justify-between items-center bg-neutral-900 rounded px-4 py-2 text-sm"
             >
               <span>{song.title}</span>
-
               <div className="flex gap-2">
                 <button
                   onClick={() => addToPlaylist(song)}
                   className="bg-green-500 text-black px-2 py-1 rounded text-xs"
                 >
-                  Add to Live
+                  Add to PlayList
                 </button>
 
                 <button
-                  // onClick={() => deleteSong(song.id)}
+                  onClick={() => {
+                    setModalData(song);
+                    setModalOpen(true);
+                  }}
+                  className="bg-yellow-500 px-2 py-1 rounded text-xs"
+                >
+                  Edit
+                </button>
+
+                <button
+                  onClick={() => handleDelete(song.song_id)}
                   className="text-red-400 text-xs"
                   disabled={loading}
                 >
@@ -113,6 +142,12 @@ export default function AlbumPanel({ addToPlaylist }) {
         total={Math.ceil(total / perPage)}
         onChange={setPage}
       />
+        <SongModal
+              isOpen={modalOpen}
+              onClose={() => setModalOpen(false)}
+              onSubmit={handleAddOrUpdate}
+              initialData={modalData}
+            />
     </>
   );
 }

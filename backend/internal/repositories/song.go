@@ -81,15 +81,31 @@ func (r *repository) ListSongs(limit, offset int) ([]*models.RefSong, int64, err
 }
 
 // UpdateSong updates an existing song
-func (r *repository) UpdateSong(song models.RefSong) (*models.RefSong, error) {
-	song.UpdatedAt = time.Now()
+// func (r *repository) UpdateSong(song models.RefSong) (*models.RefSong, error) {
+// 	song.UpdatedAt = time.Now()
 
-	fmt.Println("Updating song with ID:", song.SongID)
+// 	fmt.Println("Updating song with ID:", song.SongID)
+// 	if err := r.db.Save(&song).Error; err != nil {
+// 		return nil, err
+// 	}
+// 	return &song, nil
+// }
+func (r *repository) UpdateSong(song models.RefSong) (*models.RefSong, error) {
+	var existing models.RefSong
+	if err := r.db.Where("song_id = ? AND is_active = ?", song.SongID, true).First(&existing).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, gorm.ErrRecordNotFound
+		}
+		return nil, err
+	}
+
+	song.UpdatedAt = time.Now()
 	if err := r.db.Save(&song).Error; err != nil {
 		return nil, err
 	}
 	return &song, nil
 }
+
 
 // DeleteSong performs a soft delete by setting is_active = false
 func (r *repository) DeleteSong(id string) error {
