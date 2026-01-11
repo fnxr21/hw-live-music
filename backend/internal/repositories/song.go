@@ -12,7 +12,7 @@ import (
 type Song interface {
 	CreateSong(song models.RefSong) (*models.RefSong, error)
 	GetSongByID(id string) (*models.RefSong, error)
-	ListSongs() ([]*models.RefSong, error)
+	ListSongs(limit, offset int) ([]*models.RefSong, int64, error)
 	UpdateSong(song models.RefSong) (*models.RefSong, error)
 	DeleteSong(id string) error
 }
@@ -59,12 +59,25 @@ func (r *repository) GetSongByID(id string) (*models.RefSong, error) {
 }
 
 // ListSongs returns all active songs
-func (r *repository) ListSongs() ([]*models.RefSong, error) {
+func (r *repository) ListSongs(limit, offset int) ([]*models.RefSong, int64, error) {
 	var songs []*models.RefSong
-	if err := r.db.Where("is_active = ?", true).Find(&songs).Error; err != nil {
-		return nil, err
+	var total int64
+
+	query := `
+		SELECT *
+		FROM ref_songs rs
+		WHERE  rs.is_active =true   
+		LIMIT ? OFFSET ?
+	`
+	if err := r.db.Raw(query, limit, offset).Scan(&songs).Error; err != nil {
+		return nil, 0, err
 	}
-	return songs, nil
+	if err := r.db.Model(&models.RefSong{}).
+		Where("is_active = ?", true).
+		Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	return songs, total, nil
 }
 
 // UpdateSong updates an existing song

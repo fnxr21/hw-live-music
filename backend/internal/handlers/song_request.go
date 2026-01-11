@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/fnxr21/hw-live-music/backend/internal/models"
@@ -35,34 +34,11 @@ func (h *handlerSongRequest) CreateSongRequest(c echo.Context) error {
 
 // ListSongRequests returns all active song requests
 func (h *handlerSongRequest) ListSongRequests(c echo.Context) error {
-	page := 1
-	limit := 5
-
-	if p := c.QueryParam("page"); p != "" {
-		if parsed, err := strconv.Atoi(p); err == nil && parsed > 0 {
-			page = parsed
-		}
-	}
-
-	if l := c.QueryParam("limit"); l != "" {
-		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 {
-			limit = parsed
-		}
-	}
-
-	offset := (page - 1) * limit
-
-	reqs,total, err := h.Repo.ListSongRequests(limit, offset)
+	reqs, err := h.Repo.ListSongRequests()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	
-	return c.JSON(http.StatusOK,  map[string]interface{}{
-		"data":  reqs,
-		"page":  page,
-		"limit": limit,
-		"total": total,
-	})
+	return c.JSON(http.StatusOK, reqs)
 }
 
 // GetSongRequestByID fetches a single song request by UUID
@@ -135,3 +111,46 @@ func (h *handlerSongRequest) DeleteSongRequest(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, map[string]string{"message": "Song request deleted successfully"})
 }
+
+
+
+
+
+// // ListSongRequests returns all active song requests
+// func (h *handlerSongRequest) ListSongRequests(c echo.Context) error {
+// 	page := 1
+// 	limit := 5
+// 	tableID := 0
+
+// 	if pages := c.QueryParam("page"); pages != "" {
+// 		if parsed, err := strconv.Atoi(pages); err == nil && parsed > 0 {
+// 			page = parsed
+// 		}
+// 	}
+
+// 	if limits := c.QueryParam("limit"); limits != "" {
+// 		if parsed, err := strconv.Atoi(limits); err == nil && parsed > 0 {
+// 			limit = parsed
+// 		}
+// 	}
+
+// 	if tableid := c.QueryParam("tableId"); tableid != "" {
+// 		if parsed, err := strconv.Atoi(tableid); err == nil && parsed > 0 {
+// 			tableID = parsed
+// 		}
+// 	}
+
+// 	offset := (page - 1) * limit
+
+// 	reqs,total, err := h.Repo.ListSongRequests(limit, offset,tableID)
+// 	if err != nil {
+// 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+// 	}
+	
+// 	return c.JSON(http.StatusOK,  map[string]interface{}{
+// 		"data":  reqs,
+// 		"page":  page,
+// 		"limit": limit,
+// 		"total": total,
+// 	})
+// }

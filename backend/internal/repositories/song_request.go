@@ -11,7 +11,7 @@ import (
 type SongRequest interface {
 	CreateSongRequest(req models.TrxSongRequest) (*models.TrxSongRequest, error)
 	GetSongRequestByID(id string) (*models.TrxSongRequest, error)
-	ListSongRequests(limit, offset int) ([]*models.TrxSongRequest,int64, error)
+	ListSongRequests() ([]*models.TrxSongRequest, error)
 	UpdateSongRequest(req models.TrxSongRequest) (*models.TrxSongRequest, error)
 	DeleteSongRequest(id string) error
 	GetSongRequestByIDTable(id int) ([]*models.TrxSongRequest, error)
@@ -49,28 +49,12 @@ func (r *repository) GetSongRequestByID(id string) (*models.TrxSongRequest, erro
 
 // // ListSongRequests returns all active song requests
 
-func (r *repository) ListSongRequests(limit, offset int) ([]*models.TrxSongRequest,int64, error) {
+func (r *repository) ListSongRequests() ([]*models.TrxSongRequest, error) {
 	var reqs []*models.TrxSongRequest
-	var total int64
-
-	// if err := r.db.Where("is_active = ?", true).Find(&reqs).Error; err != nil {
-	// 	return nil,0, err
-	// }
-	// Fetch paginated results
-	if err := r.db.
-		Where("is_active = ?", true).
-		Limit(limit).
-		Offset(offset).
-		Find(&reqs).Error; err != nil {
-		return nil, 0, err
+	if err := r.db.Where("is_active = ?", true).Find(&reqs).Error; err != nil {
+		return nil, err
 	}
-
-	if err := r.db.Model(&models.TrxSongRequest{}).
-		Where("is_active = ?", true).
-		Count(&total).Error; err != nil {
-		return nil, 0, err
-	}
-	return reqs, total,nil
+	return reqs, nil
 }
 
 // update this for make limit  on next patch ,focus on mvp:

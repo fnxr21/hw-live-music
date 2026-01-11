@@ -16,7 +16,7 @@ export default function AlbumPanel({ addToPlaylist }) {
   const fetchSongs = async () => {
     setLoading(true);
     try {
-      const response = await ApiListSongs({ page, limit: perPage });
+      const response = await ApiListSongs({ page, limit: perPage,tableId:1 });
       setAlbums(response.data.data || []);
       setTotal(response.data.total || 0);
     } catch (error) {
