@@ -1,82 +1,74 @@
 
-
-
 "use client";
 
-import { API } from "@/config/axios";
-import { useState, useEffect, useMemo } from "react";
-// import { API } from "../path/to/API"; // import your Axios instance
+import { useState, useMemo } from "react";
 
 export default function Page() {
-  // UI state
+  
   const [showSearch, setShowSearch] = useState(false);
   const [showLive, setShowLive] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Data state
-  const [albums, setAlbums] = useState([]);
-  const [songRequests, setSongRequests] = useState([]);
-  const [livePlaylist, setLivePlaylist] = useState([]);
+  /**
+   * =========================
+   * MASTER SONG LIST (ADMIN)
+   * =========================
+   */
+  const albums = [
+    { id: 1, title: "Midnight Drive" },
+    { id: 2, title: "Lo-Fi Dreams" },
+    { id: 3, title: "Neon City" },
+    { id: 4, title: "Jazz After Dark" },
+  ];
 
-  // =========================
-  // Fetch albums from API (optional)
-  // =========================
-  // useEffect(() => {
-  //   API.get("/spn") // adjust endpoint if needed
-  //     .then((res) => setAlbums(res.data))
-  //     .catch((err) => console.error("Error fetching albums:", err));
-  // }, []);
+  /**
+   * =========================
+   * USER REQUEST (PRIVATE)
+   * =========================
+   */
+  const [songRequests, setSongRequests] = useState([
+    { id: 1, title: "Neon City", status: "pending" },
+    { id: 2, title: "Lo-Fi Dreams", status: "rejected" },
+  ]);
 
-  // =========================
-  // Fetch live playlist
-  // =========================
-  useEffect(() => {
-    API.get("/playlists")
-      .then((res) => setLivePlaylist(res.data))
-      .catch((err) => console.error("Error fetching live playlist:", err));
-  }, []);
+  /**
+   * =========================
+   * LIVE PLAYLIST (GLOBAL)
+   * ADMIN OWNS ORDER
+   * =========================
+   */
+  const [livePlaylist] = useState([
+    { id: 101, title: "Midnight Drive", order: 1, status: "playing" },
+    { id: 102, title: "Jazz After Dark", order: 3, status: "queued" },
+    { id: 103, title: "Lo-Fi Dreams", order: 3, status: "queued" },
+  ]);
 
-  // =========================
-  // Fetch user song requests
-  // =========================
-  useEffect(() => {
-    API.get("/song-requests")
-      .then((res) => setSongRequests(res.data))
-      .catch((err) => console.error("Error fetching song requests:", err));
-  }, []);
-
-  // =========================
-  // Sort live playlist by order
-  // =========================
+  /**
+   * 🔒 ORDER IS LOCKED HERE
+   */
   const sortedPlaylist = useMemo(() => {
     return [...livePlaylist].sort((a, b) => a.order - b.order);
   }, [livePlaylist]);
 
-  const nowPlaying = sortedPlaylist.find((s) => s.status === "playing");
-  const upcoming = sortedPlaylist.filter((s) => s.status === "queued");
+  const nowPlaying = sortedPlaylist.find(
+    (song) => song.status === "playing"
+  );
 
-  // =========================
-  // Filter albums by search
-  // =========================
+  const upcoming = sortedPlaylist.filter(
+    (song) => song.status === "queued"
+  );
+
   const filteredAlbums = albums.filter((album) =>
     album.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // =========================
-  // Request a song
-  // =========================
-  const requestSong = async (title) => {
-    try {
-      const res = await API.post("/song-request", { title });
-      setSongRequests((prev) => [...prev, res.data]);
-    } catch (err) {
-      console.error("Error requesting song:", err);
-    }
+  const requestSong = (title) => {
+    setSongRequests((prev) => [
+      ...prev,
+      { id: Date.now(), title, status: "pending" },
+    ]);
   };
 
-  // =========================
-  // Status color helper
-  // =========================
   const statusColor = (status) => {
     switch (status) {
       case "pending":
@@ -95,23 +87,26 @@ export default function Page() {
       {/* HEADER */}
       <header className="sticky top-0 z-30 border-b border-neutral-800 bg-neutral-900/80 backdrop-blur">
         <div className="flex items-center justify-between px-6 py-4">
-          <h1 className="text-xl font-bold text-green-500">Live Music</h1>
+          <h1 className="text-xl font-bold text-green-500">
+            Live Music
+          </h1>
 
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowLive(!showLive)}
-              className="rounded-full border border-neutral-700 px-4 py-2 text-sm"
-            >
-              {showLive ? "Hide Live Playlist" : "Open Live Playlist"}
-            </button>
+            {/* {!showLive && ( */}
+              <button
+                onClick={() => setShowLive(!showLive)}
+                className="rounded-full border border-neutral-700 px-4 py-2 text-sm"
+              >
+                Open Live Playlist 
+              </button>
+            {/* )} */}
 
-            <input
-              onFocus={() => setShowSearch(true)}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="What do you want to listen to?"
-              className="w-64 rounded-full bg-neutral-800 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
+     <input
+               onFocus={() => setShowSearch(true)}
+               placeholder="What do you want to listen to?"
+               className="w-64 rounded-full bg-neutral-800 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+             />
+          
           </div>
         </div>
       </header>
@@ -120,7 +115,9 @@ export default function Page() {
       <main className="px-6 py-8 space-y-12">
         {/* USER REQUEST STATUS */}
         <section>
-          <h2 className="mb-4 text-lg font-semibold">My Song Requests</h2>
+          <h2 className="mb-4 text-lg font-semibold">
+            My Song Requests
+          </h2>
 
           <div className="space-y-3">
             {songRequests.map((req) => (
@@ -147,7 +144,9 @@ export default function Page() {
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm">
           <div className="mx-auto mt-24 w-full max-w-xl rounded bg-neutral-900 p-6">
             <div className="mb-4 flex justify-between">
-              <h3 className="text-lg font-semibold">Request Song</h3>
+              <h3 className="text-lg font-semibold">
+                Request Song
+              </h3>
               <button
                 onClick={() => {
                   setShowSearch(false);
@@ -157,6 +156,14 @@ export default function Page() {
                 ✕
               </button>
             </div>
+
+            <input
+              autoFocus
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search songs or artists"
+              className="mb-4 w-full rounded bg-neutral-800 px-4 py-2"
+            />
 
             <div className="space-y-3">
               {filteredAlbums.map((album) => (
@@ -191,14 +198,20 @@ export default function Page() {
           {/* NOW PLAYING */}
           {nowPlaying && (
             <div className="border-b border-neutral-800 p-4">
-              <p className="text-xs text-neutral-400 mb-2">Now Playing</p>
+              <p className="text-xs text-neutral-400 mb-2">
+                Now Playing
+              </p>
               <div className="flex gap-4 items-center">
                 <div className="h-14 w-14 rounded-full bg-neutral-700 animate-spin-slow relative">
                   <div className="absolute inset-4 rounded-full bg-neutral-900" />
                 </div>
                 <div>
-                  <p className="font-medium">{nowPlaying.title}</p>
-                  <p className="text-xs text-green-500">Playing</p>
+                  <p className="font-medium">
+                     {nowPlaying.title}
+                  </p>
+                  <p className="text-xs text-green-500">
+                    Playing
+                  </p>
                 </div>
               </div>
             </div>
@@ -206,15 +219,17 @@ export default function Page() {
 
           {/* UPCOMING */}
           <div className="p-4 space-y-3 text-sm">
-            {upcoming.map((song, index) => (
+            {upcoming.map((song,index) => (
               <div
                 key={song.id}
                 className="flex justify-between rounded bg-neutral-800 px-3 py-2"
               >
                 <span>
-                  {index + 2}. {song.title}
+                  {index+2}. {song.title}
                 </span>
-                <span className="text-xs text-neutral-400">QUEUED</span>
+                <span className="text-xs text-neutral-400">
+                  QUEUED
+                </span>
               </div>
             ))}
           </div>

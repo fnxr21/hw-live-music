@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/fnxr21/hw-live-music/backend/internal/models"
@@ -34,11 +35,34 @@ func (h *handlerSongRequest) CreateSongRequest(c echo.Context) error {
 
 // ListSongRequests returns all active song requests
 func (h *handlerSongRequest) ListSongRequests(c echo.Context) error {
-	reqs, err := h.Repo.ListSongRequests()
+	page := 1
+	limit := 5
+
+	if p := c.QueryParam("page"); p != "" {
+		if parsed, err := strconv.Atoi(p); err == nil && parsed > 0 {
+			page = parsed
+		}
+	}
+
+	if l := c.QueryParam("limit"); l != "" {
+		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 {
+			limit = parsed
+		}
+	}
+
+	offset := (page - 1) * limit
+
+	reqs,total, err := h.Repo.ListSongRequests(limit, offset)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	return c.JSON(http.StatusOK, reqs)
+	
+	return c.JSON(http.StatusOK,  map[string]interface{}{
+		"data":  reqs,
+		"page":  page,
+		"limit": limit,
+		"total": total,
+	})
 }
 
 // GetSongRequestByID fetches a single song request by UUID
