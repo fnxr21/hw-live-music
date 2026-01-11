@@ -17,8 +17,5 @@ func LivePlaylist(e *echo.Group) {
 	e.PUT("/playlist/:id", h.UpdateLivePlaylist)      
 	e.DELETE("/playlist/:id", h.DeleteLivePlaylist)  
 
-	// e.GET("/ws", func(c echo.Context) error {
-	// 	ws.HandleWS(c.Response(), c.Request())
-	// 	return nil
-	// })
+	
 }

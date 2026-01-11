@@ -12,9 +12,8 @@ import (
 	"github.com/lib/pq"
 )
 
-
 type NotifyPayload struct {
-	Table    string `json:"table"`
+	Table     string `json:"table"`
 	Operation string `json:"operation"`
 	ID        string `json:"id"`
 	TableID   string `json:"table_id,omitempty"`
@@ -32,56 +31,71 @@ func StartRealtimeListener(dsn string, repoPlaylist repositories.LivePlaylist, r
 		log.Fatal("Failed to listen on realtime_channel:", err)
 	}
 
-	log.Println("🔔 Realtime listener started on 'realtime_channel'")
+	log.Println("Realtime listener started on 'realtime_channel'")
 
 	go func() {
-    for {
-        select {
-        case n := <-listener.Notify:
-            if n == nil {
-                continue
-            }
+		for {
+			select {
+			case n := <-listener.Notify:
+				if n == nil {
+					continue
+				}
 
-            log.Println("📣 Notification received:", n.Extra)
+				log.Println("📣 Notification received:", n.Extra)
 
-            var notify NotifyPayload
-            if err := json.Unmarshal([]byte(n.Extra), &notify); err != nil {
-                log.Println("Failed to parse NOTIFY payload:", err)
-                continue
-            }
+				var notify NotifyPayload
+				if err := json.Unmarshal([]byte(n.Extra), &notify); err != nil {
+					log.Println("Failed to parse NOTIFY payload:", err)
+					continue
+				}
 
-            switch notify.Table {
-            case "trx_live_playlists":
-                playlists, err := repoPlaylist.ListLivePlaylists()
+				switch notify.Table {
+				case "trx_live_playlists":
+					playlists, err := repoPlaylist.RealTimeListLivePlaylists()
 
-                if err != nil {
-                    log.Println("Failed to fetch playlists:", err)
-                    continue
-                }
-                payload, _ := json.Marshal(playlists)
-                ws.BroadcastAll(string(payload)) // everyone
+					if err != nil {
+						log.Println("Failed to fetch playlists:", err)
+						continue
+					}
+					payload, _ := json.Marshal(playlists)
+					ws.BroadcastAll(string(payload)) // everyone
 
-            case "trx_song_requests":
-                if notify.TableID == "" {
-                    log.Println("No tableID in notify, skipping")
-                    continue
-                }
-                tableID, err := strconv.Atoi(notify.TableID)
-                requests, err := repoSongRequest.GetSongRequestByIDTable(tableID)
-                // requests, err := repoPlaylist.ListLivePlaylists()
+					// broadcast to clients
+				// ws.BroadcastClientPlaylists(string(payload))
+				// broadcast to admins
+				// ws.BroadcastAdminPlaylists(string(payload))
 
-                if err != nil {
-                    log.Println("Failed to fetch song requests:", err)
-                    continue
-                }
-                payload, _ := json.Marshal(requests)
-                ws.BroadcastTable(notify.TableID, string(payload)) // only table
-            }
+				case "trx_song_requests":
+					// All requests for admin
+					// allRequests, err := repoSongRequest.ListSongRequests()
+					// if err != nil {
+					// 	log.Println("Failed to fetch all song requests:", err)
+					// 	continue
+					// }
+					// adminPayload, _ := json.Marshal(allRequests)
+					// ws.BroadcastAdminSongRequests(string(adminPayload))
 
-        case <-time.After(90 * time.Second):
-            go listener.Ping()
-        }
-    }
-}()
+					// if notify.TableID == "" {
+					//     log.Println("No tableID in notify, skipping")
+					//     continue
+					// }
+					tableID, err := strconv.Atoi(notify.TableID)
+					requests, err := repoSongRequest.GetSongRequestByIDTable(tableID)
+					// requests, err := repoPlaylist.ListLivePlaylists()
+
+					if err != nil {
+						log.Println("Failed to fetch song requests:", err)
+						continue
+					}
+					payload, _ := json.Marshal(requests)
+					ws.BroadcastTable(notify.TableID, string(payload)) // only table
+					//  ws.BroadcastClientSongRequests(notify.TableID, string(payload))
+				}
+
+			case <-time.After(90 * time.Second):
+				go listener.Ping()
+			}
+		}
+	}()
 
 }

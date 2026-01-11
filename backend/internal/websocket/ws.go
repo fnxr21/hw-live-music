@@ -14,12 +14,16 @@ var upgrader = websocket.Upgrader{
 }
 
 // store connected clients
-var clients = make(map[*Client]bool) // store *Client, not *websocket.Conn
+// store *Client, not *websocket.Conn
+var clients = make(map[*Client]bool) 
+
 
 var mu sync.Mutex
 
 
 
+
+type InitialStateFunc func(*Client)
 
 // Clients structure
 type Client struct {
@@ -29,7 +33,7 @@ type Client struct {
 
 
 // HandleWS upgrades HTTP connection to WebSocket
-func HandleWS(w http.ResponseWriter, r *http.Request, tableID string) {
+func HandleWS(w http.ResponseWriter, r *http.Request, tableID string, initialState InitialStateFunc) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("WebSocket upgrade error:", err)
@@ -42,6 +46,10 @@ func HandleWS(w http.ResponseWriter, r *http.Request, tableID string) {
 	mu.Unlock()
 	log.Printf("New WebSocket client connected (tableID=%s)", tableID)
 
+	// 🎯 SEND CURRENT STATE IMMEDIATELY
+	if initialState != nil {
+		initialState(client)
+	}
 	// Keep connection alive
 	for {
 		if _, _, err := conn.NextReader(); err != nil {
@@ -54,6 +62,7 @@ func HandleWS(w http.ResponseWriter, r *http.Request, tableID string) {
 		}
 	}
 }
+
 
 
 
@@ -86,3 +95,5 @@ func BroadcastTable(tableID string, message string) {
 		}
 	}
 }
+
+

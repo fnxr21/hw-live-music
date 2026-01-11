@@ -1,0 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- CREATE DATABASE  live_music;
+
+CREATE SCHEMA IF NOT EXISTS live_music;

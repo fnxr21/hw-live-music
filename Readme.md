@@ -6,41 +6,6 @@ Customers request songs straight from their tables. Bands curate the flow. Every
 
 ---
 
-## 📋 Problem Statement
-
-Live music venues thrive on energy and momentum—but song requests are often chaotic, manual, or disruptive.
-
-This system creates a clean, real-time bridge between:
-
-* **Customers**, who want to request songs effortlessly
-* **Bands/Admins**, who need full control over what gets played and when
-* **The Venue**, which benefits from smoother operations and happier guests
-
-No shouting. No scraps of paper. Just music, moving at the speed of the room.
-
----
-
-## ✨ Core Features
-
-### For Customers
-
-* Browse a curated song catalog
-* Search by title, artist, or genre
-* Request songs directly from table tablets
-* Track request status in real time
-* View the upcoming queue and estimated wait time
-* Get notified when their song is up next
-
-### For Admins / Bands
-
-* Live dashboard of all song requests
-* Approve, reject, or reorder requests instantly
-* Drag-and-drop playlist management
-* Mark songs as played and maintain history
-* Add notes for band members
-* Import and manage songs via Genius API
-
----
 
 ## 🏗️ Architecture Overview
 
@@ -135,36 +100,194 @@ Database Change → Trigger → Notify → WebSocket → All Clients
 
 ---
 
+
 ## 🚀 Getting Started
+Before you begin, ensure you have the following installed:
+- **Docker** and **Docker Compose**
+- **Node.js** (v18 or higher) and **npm**
+- **Go** (v1.21 or higher)
+- **golang-migrate** CLI tool
+
+Install golang-migrate:
 ```bash
-# Start development server
-docker-compose -f ./database/docker-compose.yml up -d
+# macOS
+brew install golang-migrate
 
+# Linux
+curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz
+sudo mv migrate /usr/local/bin/
 
-
+# Windows
+choco install golang-migrate
 ```
 
-```bash
-cd my-app
+## ⚙️ Environment Setup
 
-# Install dependencies
-npm install
+### Step 1: Database Environment
 
-# Edit .env.local as needed
+Create `database/docker/.env` file:
 
-# Start development frontend
-npm run dev
+```env
+APP_NAME=live-music
+
+PGSQL_POSTGRES_USER=postgres
+PGSQL_POSTGRES_PASSWORD=pwpostgres!
+PGSQL_POSTGRES_DB=live_music
+PGSQL_DIR=./data
+PGSQL_INIT=./init
+PGSQL_PORT=5432
 ```
+
+### Step 2: Backend Environment
+
+Create `backend/.env` file:
+
+```env
+DB_USER=postgres
+DB_PASSWORD=pwpostgres!
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=live_music
+
+PORT=8080
+```
+
+### Step 3: Frontend Environment
+
+Create `frontend/.env.local` file:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8080
+```
+
+## 🚀 Getting Started
+
+### Option 1: Using Make Commands (Recommended)
+
+```bash
+# 1. Start PostgreSQL database
+make db-up
+
+# 2. Run database migrations
+make migrate-up
+
+# 3. Start backend (in a new terminal)
+make run-go
+
+# 4. Start frontend (in another new terminal)
+make run-next
+```
+
+### Option 2: Manual Setup
+
+#### 1. Start the Database
+
+```bash
+docker-compose -f database/postgres/docker-compose.yml up -d
+```
+
+Verify the database is running:
+```bash
+docker ps
+```
+
+#### 2. Run Database Migrations
+
+```bash
+migrate -path ./backend/db/migrations -database "postgres://postgres:pwpostgres!@localhost:5432/live_music?sslmode=disable" up
+```
+
+#### 3. Start the Backend Server
+
+Open a new terminal window:
 
 ```bash
 cd backend
-
-# Install dependencies
 go mod tidy
-
-# Start development server
 go run main.go
 ```
+
+The backend API will be available at `http://localhost:8080`
+
+#### 4. Start the Frontend Development Server
+
+Open another new terminal window:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend will be available at `http://localhost:3000`
+
+## 🛠️ Available Make Commands
+
+| Command | Description |
+|---------|-------------|
+| `make db-up` | Start PostgreSQL database container |
+| `make db-down` | Stop and remove database container |
+| `make migrate-up` | Run all pending database migrations |
+| `make migrate-down` | Rollback the last migration |
+| `make run-go` | Start Go backend server |
+| `make run-next` | Start Next.js frontend server |
+| `make reset` | ⚠️ **DANGER**: Full reset - deletes all data |
+
+## 🗄️ Database Management
+
+### View Database Logs
+```bash
+docker-compose -f database/postgres/docker-compose.yml logs -f
+```
+
+### Access PostgreSQL CLI
+```bash
+docker exec -it <container_name> psql -U postgres -d live_music
+```
+
+### Stop Database
+```bash
+make db-down
+```
+
+### Reset Everything (⚠️ Warning: Deletes All Data)
+```bash
+make reset
+```
+
+This will:
+- Stop and remove the database container
+- Delete all data from `database/postgres/data`
+- You'll need to run `make db-up` and `make migrate-up` again
+
+## 📍 Application URLs
+
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8080
+- **Database**: localhost:5432
+
+## 🔧 Troubleshooting
+
+### Database connection errors
+- Ensure PostgreSQL container is running: `docker ps`
+- Check credentials in `backend/.env` match `database/docker/.env`
+- Verify port 5432 is not in use: `lsof -i :5432` (macOS/Linux)
+
+### Migration errors
+- Ensure database is running before migrating
+- Check migration files in `backend/db/migrations`
+- To fix failed migrations, you may need to run `make migrate-down` then `make migrate-up`
+
+### Port already in use
+- Frontend (3000): Check if another Next.js app is running
+- Backend (8080): Check if another service is using port 8080
+- Database (5432): Check if PostgreSQL is installed locally
+
+
+
+
+
+
 
 ---
 
@@ -201,78 +324,6 @@ GET /api/genius/songs/:id
   }
 }
 ```
-
----
-
-## 🧍 Customer Flow
-
-### 1. Access Table Interface
-
-* Tablet loads venue-specific UI
-
-### 2. Browse & Discover
-
-* Search songs by title or artist
-* Filter by genre or category
-* View detailed song metadata
-
-### 3. Submit a Request
-
-* Tap **Request** on a song
-* Optionally add name or notes
-* Status starts as **⏳ Pending**
-
-### 4. Track Status in Real Time
-
-* ⏳ **Pending** — Awaiting approval
-* ✅ **Approved** — Added to the queue
-* ❌ **Rejected** — Declined by admin
-* 🎵 **Played** — Performed live
-
-### 5. View the Queue
-
-* See all approved upcoming songs
-* Estimated wait time by position
-* Highlight when your song is next
-
----
-
-## 🎛️ Admin Flow
-
-### 1. Admin Dashboard
-
-* Central control room for the night
-
-### 2. Monitor Requests
-
-* View all incoming requests
-* See table number and timestamps
-* Filter by status or table
-
-### 3. Approve or Reject
-
-* ✓ Approve to add to playlist
-* ✗ Reject with optional reason
-
-### 4. Manage the Playlist
-
-* Drag and drop to reorder songs
-* Control performance flow
-* Add internal notes for the band
-
-### 5. Mark Songs as Played
-
-* One click when a song is performed
-* Moves to history automatically
-* Next song becomes active
-
-### 6. Song Management
-
-* Add or edit songs manually
-* Import directly from Genius
-* Manage genres and categories
-
----
 
 ## 🎵 Final Note
 
