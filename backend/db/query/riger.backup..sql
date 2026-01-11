@@ -146,6 +146,8 @@ BEGIN
         SET order_number = NULL,
             is_current = FALSE
         WHERE live_playlist_id = NEW.live_playlist_id;
+
+
     END IF;
 
     ----------------------------------
@@ -170,3 +172,56 @@ CREATE TRIGGER trg_live_playlist_update
 AFTER UPDATE ON live_music.trx_live_playlists
 FOR EACH ROW
 EXECUTE FUNCTION live_music.trg_live_playlist_update();
+
+
+
+
+-- bacup
+CREATE OR REPLACE FUNCTION live_music.trg_insert_live_playlist()
+RETURNS trigger AS $$
+DECLARE
+  approved_status uuid;
+  max_order int;
+BEGIN
+  -- Get UUID for APPROVED status
+  SELECT status_id INTO approved_status
+  FROM live_music.ref_song_status
+  WHERE status_name = 'APPROVED';
+
+  -- Only run if status changed to APPROVED
+  IF NEW.status = approved_status AND OLD.status IS DISTINCT FROM NEW.status THEN
+    
+    -- Check if table_id is provided; if not, skip playlist insert
+    IF NEW.table_id IS NOT NULL THEN
+
+      -- Get current max order_number for this table
+      SELECT COALESCE(MAX(order_number), 0) INTO max_order
+      FROM live_music.trx_live_playlists
+      WHERE table_id = NEW.table_id;
+
+      -- Insert new row into live playlist
+      INSERT INTO live_music.trx_live_playlists(
+        song_request_id,
+        order_number,
+        is_current,
+        table_id,
+        is_active,
+        created_at,
+        updated_at
+      )
+      VALUES (
+        NEW.song_request_id,
+        max_order + 1,
+        FALSE,
+        NEW.table_id,
+        TRUE,
+        NOW(),
+        NOW()
+      );
+
+    END IF; -- end table_id check
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;

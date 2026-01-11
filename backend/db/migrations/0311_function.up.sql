@@ -168,3 +168,63 @@ FOR EACH ROW
 EXECUTE FUNCTION live_music.trg_live_playlist_update();
 
 
+
+-- admin insert with approved
+
+CREATE OR REPLACE FUNCTION live_music.trg_insert_live_playlist_admin()
+RETURNS trigger AS $$
+DECLARE
+    approved_status uuid;
+    max_order int;
+BEGIN
+    -- Get UUID for APPROVED status
+    SELECT status_id INTO approved_status
+    FROM live_music.ref_song_status
+    WHERE status_name = 'APPROVED';
+
+    -- Only run if status = APPROVED
+    IF NEW.status = approved_status THEN
+
+        -- Get current max order_number ignoring table_id
+        SELECT COALESCE(MAX(order_number), 0) INTO max_order
+        FROM live_music.trx_live_playlists;
+
+        -- Insert into live playlist
+        INSERT INTO live_music.trx_live_playlists(
+            song_request_id,
+            order_number,
+            is_current,
+            table_id,   -- keep NULL since it's admin
+            is_active,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            NEW.song_request_id,
+            max_order + 1,
+            FALSE,
+            NULL,
+            TRUE,
+            NOW(),
+            NOW()
+        );
+
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+
+-- Drop trigger if exists
+DROP TRIGGER IF EXISTS trg_song_request_admin_insert
+ON live_music.trx_song_requests;
+
+-- Create trigger for INSERT only
+CREATE TRIGGER trg_song_request_admin_insert
+AFTER INSERT ON live_music.trx_song_requests
+FOR EACH ROW
+EXECUTE FUNCTION live_music.trg_insert_live_playlist_admin();
+

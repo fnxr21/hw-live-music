@@ -13,6 +13,10 @@
     DROP TRIGGER IF EXISTS trg_live_playlist_update
     ON live_music.trx_live_playlists;
 
+    -- Drop trigger if exists
+DROP TRIGGER IF EXISTS trg_song_request_admin_insert
+ON live_music.trx_song_requests;
+
 
     DROP FUNCTION IF EXISTS live_music.notify_realtime_simple();
     DROP FUNCTION IF EXISTS live_music.trg_insert_live_playlist();
