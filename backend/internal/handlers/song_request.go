@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/fnxr21/hw-live-music/backend/internal/models"
@@ -34,11 +36,34 @@ func (h *handlerSongRequest) CreateSongRequest(c echo.Context) error {
 
 // ListSongRequests returns all active song requests
 func (h *handlerSongRequest) ListSongRequests(c echo.Context) error {
-	reqs, err := h.Repo.ListSongRequests()
+	page := 1
+	limit := 5
+
+	if pages := c.QueryParam("page"); pages != "" {
+		if parsed, err := strconv.Atoi(pages); err == nil && parsed > 0 {
+			page = parsed
+		}
+	}
+
+	if limits := c.QueryParam("limit"); limits != "" {
+		if parsed, err := strconv.Atoi(limits); err == nil && parsed > 0 {
+			limit = parsed
+		}
+	}
+
+		offset := (page - 1) * limit
+
+	reqs,total, err := h.Repo.ListSongRequests(limit, offset,)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	return c.JSON(http.StatusOK, reqs)
+	// return c.JSON(http.StatusOK, reqs)
+		return c.JSON(http.StatusOK,  map[string]interface{}{
+		"data":  reqs,
+		"page":  page,
+		"limit": limit,
+		"total": total,
+	})
 }
 
 // GetSongRequestByID fetches a single song request by UUID
@@ -57,6 +82,8 @@ func (h *handlerSongRequest) GetSongRequestByID(c echo.Context) error {
 // UpdateSongRequest updates an existing song request
 func (h *handlerSongRequest) UpdateSongRequest(c echo.Context) error {
 	idParam := c.Param("id")
+	fmt.Println("check")
+
 	requestID, err := uuid.Parse(idParam)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid song request ID"})
@@ -114,43 +141,3 @@ func (h *handlerSongRequest) DeleteSongRequest(c echo.Context) error {
 
 
 
-
-
-// // ListSongRequests returns all active song requests
-// func (h *handlerSongRequest) ListSongRequests(c echo.Context) error {
-// 	page := 1
-// 	limit := 5
-// 	tableID := 0
-
-// 	if pages := c.QueryParam("page"); pages != "" {
-// 		if parsed, err := strconv.Atoi(pages); err == nil && parsed > 0 {
-// 			page = parsed
-// 		}
-// 	}
-
-// 	if limits := c.QueryParam("limit"); limits != "" {
-// 		if parsed, err := strconv.Atoi(limits); err == nil && parsed > 0 {
-// 			limit = parsed
-// 		}
-// 	}
-
-// 	if tableid := c.QueryParam("tableId"); tableid != "" {
-// 		if parsed, err := strconv.Atoi(tableid); err == nil && parsed > 0 {
-// 			tableID = parsed
-// 		}
-// 	}
-
-// 	offset := (page - 1) * limit
-
-// 	reqs,total, err := h.Repo.ListSongRequests(limit, offset,tableID)
-// 	if err != nil {
-// 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-// 	}
-	
-// 	return c.JSON(http.StatusOK,  map[string]interface{}{
-// 		"data":  reqs,
-// 		"page":  page,
-// 		"limit": limit,
-// 		"total": total,
-// 	})
-// }

@@ -11,9 +11,8 @@ export const ApiGetSong = (id) => API.get(`/song/${id}`);
 export const ApiUpdateSong = (form) => API.put(`/song/${form.id}`, form);
 export const ApiDeleteSong = (id) => API.delete(`/song/${id}`);
 
-
-
-export const APIConfigLocation = (form) =>
-  API.patch("update-config-location", form);
-
-export const APIGetConfig = () => API.get("/config-location");
+// admin 
+export const ApiListSongsRequest = ({ page = 1, limit = 5 }) =>
+  API.get("/song-requests", { params: { page, limit } });
+export const ApiUpdateSongRequest = (form) =>
+  API.put(`/song-request/${form.id}`, form);

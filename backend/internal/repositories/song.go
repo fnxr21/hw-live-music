@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/fnxr21/hw-live-music/backend/internal/models"
