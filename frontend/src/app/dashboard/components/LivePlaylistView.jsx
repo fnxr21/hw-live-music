@@ -5,15 +5,15 @@ export default function LivePlaylistView({ playlist }) {
         Live Playlist
       </h3>
 
-      {playlist.map((s, i) => (
+      {playlist.map((data, index) => (
         <div
-          key={s.id}
+          key={index}
           className="bg-neutral-900 rounded px-3 py-2 mb-2 text-sm flex justify-between"
         >
           <span>
-            #{i + 1} {s.title}
+            #{index + 1} {data.title}
           </span>
-          {i === 0 ? (
+          {index === 0 ? (
             <span className="text-green-500">PLAYING</span>
           ) : (
             <span className="text-neutral-400">QUEUED</span>
