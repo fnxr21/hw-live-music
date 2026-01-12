@@ -11,7 +11,7 @@
     const tableId = params.id; // dynamic slug from /table/[id]
 
     const [playlists, setPlaylists] = useState([]);
-    const [requests, setRequests] = useState([]);
+    // const [requests, setRequests] = useState([]);
     const [wsStatus, setWsStatus] = useState({
       playlists: false,
       table: false,
@@ -51,35 +51,35 @@
       // --------------------------
       // 2️⃣ Table-specific socket
       // --------------------------
-      const wsTable = new WebSocket(`ws://localhost:8080/api/v1/ws/table/1`);
+      // const wsTable = new WebSocket(`ws://localhost:8080/api/v1/ws/table/1`);
 
-      wsTable.onopen = () => {
-        console.log(`✅ Connected to table 10 WebSocket`);
-        setWsStatus((s) => ({ ...s, table: true }));
-      };
+      // wsTable.onopen = () => {
+      //   console.log(`✅ Connected to table 10 WebSocket`);
+      //   setWsStatus((s) => ({ ...s, table: true }));
+      // };
 
-      wsTable.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          setRequests(data); // replace state with latest table-specific requests
-        } catch (err) {
-          console.error("Failed to parse table WS data:", err);
-        }
-      };
+      // wsTable.onmessage = (event) => {
+      //   try {
+      //     const data = JSON.parse(event.data);
+      //     setRequests(data); // replace state with latest table-specific requests
+      //   } catch (err) {
+      //     console.error("Failed to parse table WS data:", err);
+      //   }
+      // };
       
-      wsTable.onclose = () => {
-        console.log(`⚠ Table ${tableId} WebSocket disconnected`);
-        setWsStatus((s) => ({ ...s, table: false }));
-      };
+      // wsTable.onclose = () => {
+      //   console.log(`⚠ Table ${tableId} WebSocket disconnected`);
+      //   setWsStatus((s) => ({ ...s, table: false }));
+      // };
 
-      wsTable.onerror = (err) => {
-        console.error(`❌ Table ${tableId} WebSocket error:`, err);
-      };
+      // wsTable.onerror = (err) => {
+      //   console.error(`❌ Table ${tableId} WebSocket error:`, err);
+      // };
 
       // Cleanup
       return () => {
         wsPlaylist.close();
-        wsTable.close();
+        // wsTable.close();
       };
     }, [tableId]);
 
@@ -96,10 +96,10 @@
 
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-2 text-neutral-900 dark:text-white">Live Playlist</h2>
-          {playlists.length === 0 ? (
+          {playlists?.length === 0 ? (
             <p className="text-neutral-500 dark:text-neutral-400 text-center">Waiting for playlists...</p>
           ) : (
-            playlists.map((pl, idx) => (
+            playlists?.map((pl, idx) => (
               <div
                 key={idx}
                 className="rounded-md bg-blue-100 p-3 text-sm dark:bg-blue-900 dark:text-blue-200"
@@ -110,7 +110,7 @@
           )}
         </div>
 
-        <div>
+        {/* <div>
           <h2 className="text-xl font-semibold mb-2 text-neutral-900 dark:text-white">Table Song Requests</h2>
           {requests.length === 0 ? (
             <p className="text-neutral-500 dark:text-neutral-400 text-center">Waiting for song requests...</p>
@@ -124,7 +124,7 @@
               </div>
             ))
           )}
-        </div>
+        </div> */}
       </div>
     );
   }

@@ -16,7 +16,7 @@ type LivePlaylist interface {
 	UpdateLivePlaylist(playlist models.TrxLivePlaylist) (*models.TrxLivePlaylist, error)
 	DeleteLivePlaylist(id string) error
 
-	RealTimeListLivePlaylists() ([]*models.TrxLivePlaylist, error)
+	RealTimeListLivePlaylists() ([]*LivePlaylistWithDetails, error)
 }
 
 // CreateLivePlaylist creates a new playlist entry
@@ -84,13 +84,30 @@ func (r *repository) DeleteLivePlaylist(id string) error {
 }
 
 
-func (r *repository) RealTimeListLivePlaylists() ([]*models.TrxLivePlaylist, error) {
-	var playlists []*models.TrxLivePlaylist
+func (r *repository) RealTimeListLivePlaylists() ([]*LivePlaylistWithDetails, error) {
+	var playlists []*LivePlaylistWithDetails
 
 	query := `
-		SELECT *
-		FROM trx_live_playlists
-		WHERE is_active = true
+		SELECT
+			tlp.*,
+			rs.title,
+			rs.artist,
+			rs.duration,
+			rs.header_image_url,
+			rs.release_song_date,
+			rs.url,
+			rt.table_number
+		FROM live_music.trx_live_playlists tlp
+		JOIN live_music.trx_song_requests tsr
+			ON tsr.song_request_id = tlp.song_request_id
+			AND tsr.is_active = true
+		LEFT JOIN live_music.ref_songs rs
+			ON rs.song_id = tsr.song_id
+			AND rs.is_active = true
+		LEFT JOIN live_music.ref_tables rt
+			ON rt.table_id = tlp.table_id
+			AND rt.is_active = true
+		WHERE tlp.is_active = true
 		ORDER BY order_number ASC
 		LIMIT 20
 	`

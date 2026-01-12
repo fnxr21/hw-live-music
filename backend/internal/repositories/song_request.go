@@ -82,7 +82,6 @@ func (r *repository) GetSongRequestByIDTable(tableNumber int) ([]*models.TrxSong
 	if err := r.db.Raw(query, tableNumber).Scan(&reqs).Error; err != nil {
 		return nil, err
 	}
-
 	return reqs, nil
 }
 
